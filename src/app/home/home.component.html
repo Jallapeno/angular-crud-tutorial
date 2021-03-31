@@ -1,0 +1,424 @@
+<div class="p-4">
+    <div class="container">
+        <h1>Bem vindo, {{user.firstName}}!</h1>
+        <p>Você se cadastrou em um sistema feito com Angular 10! Continue rolando a tela caso queira aprender como fazê-lo.</p>
+    </div>
+</div>
+<div class="container pb-5">
+    <accordion [isAnimated]="true">
+
+        <accordion-group heading="Estrutura do projeto">
+          <p>
+            O Angular CLI foi usado para gerar a estrutura base do projeto com o comando <code>"ng new nome-do-projeto"</code>
+            , o CLI também é usado para construir e iniciar o aplicativo. Para obter mais informações sobre o Angular CLI, consulte <a href="https://angular.io/cli">angular.io/cli</a> .
+          </p>
+          <p>
+            O programa e a estrutura de código do tutorial seguem as recomendações de melhores práticas no Guia de estilo oficial do Angular, 
+            com alguns dos meus próprios ajustes aqui e ali.
+          </p>
+          <p>
+            Criei arquivos <code>index.ts</code> em cada pasta para facilitar a importação dos serviços, components e modulos permitindo uma multipla importação
+            em uma linha só.
+          </p>
+          <p>
+            Os recursos <code>account</code> e <code>users</code> são organizados em módulos de recursos independentes que gerenciam seu próprio layout, rotas e componentes, 
+            e são conectados ao aplicativo principal dentro do <code>app-routing.module.ts</code>.
+          </p>
+          <p>
+            Aliases de caminho <code>@app</code> e <code>@environments</code> foram configurados em <code>tsconfig.base.json</code> para mapear os caminhos 
+            <code>/src/app</code> e <code>/src/environments</code>. Isso permite que as importações sejam relativas às pastas de app e environments, 
+            prefixando caminhos de importação com aliases em vez de ter que usar caminhos relativamente longos(por exemplo <code>'../../../../'</code> )
+          </p>
+          <p>abaixo temos a arquitetura gerada para o projeto</p>
+          <ul> 
+            <li> 
+              src
+              <ul>
+                <li> 
+                  app
+                  <ul>
+                    <li>account
+                      <ul>
+                        <li>layout
+                          <ul>
+                            <li class="text-warning">layout.component.html</li>
+                            <li class="text-primary">layout.component.ts</li>
+                          </ul>
+                        </li>
+                        <li>login
+                          <ul>
+                            <li class="text-warning">login.component.html</li>
+                            <li class="text-primary">login.component.ts</li>
+                          </ul>
+                        </li>
+                        <li>register
+                          <ul>
+                            <li class="text-warning">register.component.html</li>
+                            <li class="text-primary">register.component.ts</li>
+                          </ul>
+                        </li>
+                        <li class="text-danger">account-routing.module.ts</li>
+                        <li class="text-warning">account.component.html</li>
+                        <li class="text-primary">account.component.ts</li>
+                        <li class="text-danger">account.module.ts</li>
+                        <li class="text-info">index.ts</li>
+                      </ul>
+                    </li>
+                    <li>components
+                      <ul>
+                        <li>alert
+                          <ul>
+                            <li class="text-warning">alert.component.html</li>
+                            <li class="text-primary">alert.component.ts</li>
+                          </ul>
+                        </li>
+                        <li>index.ts</li>
+                      </ul>
+                    </li>
+                    <li>helpers
+                      <ul>
+                        <li class="text-warning">auth-guard.service.ts</li>
+                        <li class="text-warning">error-interceptor.service.ts</li>
+                        <li class="text-warning">jwt-interceptor.service.ts</li>
+                        <li class="text-info">index.ts</li>
+                      </ul>
+                    </li>
+                    <li>home
+                      <ul>
+                        <li class="text-warning">home.component.html</li>
+                        <li class="text-primary">home.component.ts</li>
+                        <li class="text-info">index.td</li>
+                      </ul>
+                    </li>
+                    <li>models
+                      <ul>
+                        <li class="text-info">alert.ts</li>
+                        <li class="text-info">user.ts</li>
+                        <li class="text-info">index.ts</li>
+                      </ul>
+                    </li>
+                    <li>services
+                      <ul>
+                        <li class="text-warning">account.service.ts</li>
+                        <li class="text-warning">alert.service.ts</li>
+                        <li class="text-info">index.ts</li>
+                      </ul>
+                    </li>
+                    <li>users
+                      <ul>
+                        <li>add-edit
+                          <ul>
+                            <li class="text-warning">add-edit.component.html</li>
+                            <li class="text-primary">add-edit.component.ts</li>
+                          </ul>
+                        </li>
+                        <li>layout
+                          <ul>
+                            <li class="text-warning">layout.component.html</li>
+                            <li class="text-primary">layout.component.ts</li>
+                          </ul>
+                        </li>
+                        <li>list
+                          <ul>
+                            <li class="text-warning">list.component.html</li>
+                            <li class="text-primary">list.component.ts</li>
+                          </ul>
+                        </li>
+                        <li class="text-danger">users-routing.module.ts</li>
+                        <li class="text-warning">users.component.html</li>
+                        <li class="text-primary">users.component.ts</li>
+                        <li class="text-danger">users.module.ts</li>
+                        <li class="text-info">index.ts</li>
+                      </ul>
+                    </li>
+        
+                    <li class="text-danger">app-routing.moudle.ts</li>
+                    <li class="text-warning">app.component.html</li>
+                    <li class="text-primary">app.component.ts</li>
+                    <li class="text-danger">app.module.ts</li>
+        
+                  </ul>
+                </li>
+        
+                <li> 
+                  environments
+                  <ul>
+                    <li class="text-info">environments.prod.ts</li>
+                    <li class="text-info">environments.ts</li>
+                  </ul>
+                </li>
+        
+                <li class="text-warning"> 
+                  index.html
+                </li>
+        
+                <li class="text-info">main.ts</li>
+        
+                <li class="text-info">polyfills.ts</li>
+        
+                <li class="text-primary">style.scss</li>
+        
+              </ul>
+            </li>
+        
+            <li class="text-success">package.json</li>
+            
+            <li class="text-success">tsconfig.base.json</li>
+          </ul>
+        </accordion-group>
+
+        <accordion-group heading="Configurações iniciais recomendadas">
+          <p>Some content</p>
+        </accordion-group>
+
+        <accordion-group heading="Criando os modelos das classes">
+          <p>Comece criando os modelos das classes que terão no projeto.</p>
+          <ol>
+            <li>crie uma pasta chamada <code>models</code> dentro da pasta <code>src</code></li>
+            <li>dentro da pasta models que acaba de criar, crie 3 arquivos: <code>alert.ts</code>, <code>user.ts</code> e <code>index.ts</code></li>
+            <li>dentro de <code>user.ts</code> terá a seguinte classe</li>
+            <textarea  class="p-3 mb-2 bg-dark text-white" cols="40" rows="10">
+            export class User {
+              id: string;
+              username: string;
+              password: string;
+              firstName: string;
+              lastName: string;
+              token: string; 
+            }
+            </textarea>
+            <li>dentro de <code>alert.ts</code> terá a seguinte classe</li>
+            <textarea  class="p-3 mb-2 bg-dark text-white" cols="41" rows="20">
+            export class Alert {
+                id: string;
+                type: AlertType;
+                message: string;
+                autoClose: boolean;
+                keepAfterRouteChange: boolean;
+                fade: boolean;
+            
+                constructor(init?:Partial<Alert>) {
+                    Object.assign(this, init);
+                }
+            }
+            
+            export enum AlertType {
+                Success,
+                Error,
+                Info,
+                Warning 
+            }            
+            </textarea>
+            <li>dentro de <code>index.ts</code> terá as seguintes informações</li>
+            <textarea  class="p-3 mb-2 bg-dark text-white" cols="50" rows="10">
+              import { Alert } from './alert';
+              import { AlertType } from './alert';
+              import { User } from './user';
+
+              export {
+                  Alert,
+                  AlertType,
+                  User
+              }
+            </textarea>
+          </ol>
+        </accordion-group>
+
+        <accordion-group heading="Criando os Serviços">
+          <p>Após a criação das classes, podemos dar inicio a criação dos serviços que terão na aplicação. <code>account.service.ts</code> e <code>alert.service.ts</code></p>
+          <p>O ideal seria você abrir o terminal na pasta do projeto pois vamos rodas alguns comandos do angular CLI.</p>
+          <ol>
+            <li>No seu terminal rode o comando <code>ng g s services/account</code></li>
+            <li>No mesmo terminal rode o comando <code>ng g s services/alert</code></li>
+            <li>Após os comandos acima uma pasta será criada. Crie um arquivo <code>index.ts</code> dentro da pasta <code>/services</code> que foi criada</li>
+            <li>Acesse o arquivo <code>account.service.ts</code>
+              <h5>serviço de conta</h5>
+              <p>
+                O serviço de conta lida com a comunicação entre o aplicativo Angular e a API de back-end. 
+                Ele contém métodos de login, logout e registro, bem como métodos CRUD padrão para recuperar e modificar dados do usuário.
+              </p>
+              <p>
+                Com o login bem sucedido, o retornado <code>user</code> é armazenado no armazenamento local do navegador 
+                para manter o usuário conectado entre as atualizações da página e as sessões do navegador. 
+                Se preferir não usar o armazenamento local, você pode simplesmente removê-lo do serviço 
+                de conta e o aplicativo continuará a funcionar corretamente exceto para permanecer conectado entre as atualizações da página.
+              </p>
+              <p>
+                A propriedade <code>user</code> expõe um observável RxJS (<code> Observable < User> </code>) para que qualquer componente possa se inscrever para ser notificado 
+                quando um usuário efetuar login, efetuar logout ou atualizar seu perfil. 
+                A notificação é acionada pela chamada para <code>this.userSubject.next()</code> de cada um desses métodos. 
+                Para obter mais informações sobre a comunicação de componentes com RxJS, recomento consultar o tutorial 
+                <a href="https://jasonwatmore.com/post/2020/07/06/angular-10-communicating-between-components-with-observable-subject">Angular 10 - Communicating Between Components with Observable & Subject</a>
+              </p>
+              <p>
+                O método <code>get userValue()</code> permite que outros componentes obtenham facilmente o valor atual do usuário conectado, sem ter que se inscrever no userobservável.
+              </p>
+              <p>Abaixo temos o código do arquivo</p>
+            </li>
+            <textarea  class="p-3 mb-2 bg-dark text-white" cols="120" rows="85">
+              import { Injectable } from '@angular/core';
+              import { Router } from '@angular/router';
+              import { HttpClient } from '@angular/common/http';
+              import { BehaviorSubject, Observable } from 'rxjs';
+              import { map } from 'rxjs/operators';
+
+              import { environment } from '@environments/environment';
+              import { User } from '@app/models';
+
+              @Injectable({
+                providedIn: 'root'
+              })
+              export class AccountService {
+                private userSubject: BehaviorSubject<User>;
+                public user: Observable<User>;
+
+                constructor(
+                  private router: Router,
+                  private http: HttpClient
+                ) {
+                    this.userSubject = new BehaviorSubject<User>(JSON.parse(localStorage.getItem('user')));
+                    this.user = this.userSubject.asObservable();
+                }
+
+                public get userValue(): User {
+                  return this.userSubject.value;
+                }
+
+                login(username, password) {
+                    return this.http.post<User>(`${environment.apiUrl}/users/authenticate`, { username, password })
+                        .pipe(map(user => {
+                            // store user details and jwt token in local storage to keep user logged in between page refreshes
+                            localStorage.setItem('user', JSON.stringify(user));
+                            this.userSubject.next(user);
+                            return user;
+                        }));
+                }
+
+                logout() {
+                    // remove user from local storage and set current user to null
+                    localStorage.removeItem('user');
+                    this.userSubject.next(null);
+                    this.router.navigate(['/account/login']);
+                }
+
+                register(user: User) {
+                    return this.http.post(`${environment.apiUrl}/users/register`, user);
+                }
+
+                getAll() {
+                    return this.http.get<User[]>(`${environment.apiUrl}/users`);
+                }
+
+                getById(id: string) {
+                    return this.http.get<User>(`${environment.apiUrl}/users/${id}`);
+                }
+
+                update(id, params) {
+                    return this.http.put(`${environment.apiUrl}/users/${id}`, params)
+                        .pipe(map(x => {
+                            // update stored user if the logged in user updated their own record
+                            if (id == this.userValue.id) {
+                                // update local storage
+                                const user = { ...this.userValue, ...params };
+                                localStorage.setItem('user', JSON.stringify(user));
+
+                                // publish updated user to subscribers
+                                this.userSubject.next(user);
+                            }
+                            return x;
+                        }));
+                }
+
+                delete(id: string) {
+                    return this.http.delete(`${environment.apiUrl}/users/${id}`)
+                        .pipe(map(x => {
+                            // auto logout if the logged in user deleted their own record
+                            if (id == this.userValue.id) {
+                                this.logout();
+                            }
+                            return x;
+                        }));
+                }
+              }      
+            </textarea>
+            <br>
+            <li>Agora acesse o arquivo <code>alert.service.ts</code>
+              <h5>serviço de alerta</h5>
+              <p>
+                O serviço de alerta atua como uma ponte entre qualquer componente no aplicativo Angular e o componente de alerta que realmente exibe as mensagens de alerta. 
+                Ele contém métodos para enviar, limpar e assinar mensagens de alerta.
+              </p>
+              <p>
+                O serviço usa as classes RxJS Observable e Subject para permitir a comunicação com outros componentes.
+              </p>
+              <p>Abaixo temos o código do arquivo</p>
+            </li>
+            <textarea  class="p-3 mb-2 bg-dark text-white" cols="110" rows="47">
+              import { Injectable } from '@angular/core';
+              import { Observable, Subject } from 'rxjs';
+              import { filter } from 'rxjs/operators';
+
+              import { Alert, AlertType } from '@app/models';
+
+              @Injectable({
+                providedIn: 'root'
+              })
+              export class AlertService {
+                private subject = new Subject<Alert>();
+                private defaultId = 'default-alert';
+
+                // enable subscribing to alerts observable
+                onAlert(id = this.defaultId): Observable<Alert> {
+                  return this.subject.asObservable().pipe(filter(x => x && x.id === id));
+                }
+
+                // convenience methods
+                success(message: string, options?: any) {
+                    this.alert(new Alert({ ...options, type: AlertType.Success, message }));
+                }
+
+                error(message: string, options?: any) {
+                    this.alert(new Alert({ ...options, type: AlertType.Error, message }));
+                }
+
+                info(message: string, options?: any) {
+                    this.alert(new Alert({ ...options, type: AlertType.Info, message }));
+                }
+
+                warn(message: string, options?: any) {
+                    this.alert(new Alert({ ...options, type: AlertType.Warning, message }));
+                }
+
+                // main alert method    
+                alert(alert: Alert) {
+                    alert.id = alert.id || this.defaultId;
+                    this.subject.next(alert);
+                }
+
+                // clear alerts
+                clear(id = this.defaultId) {
+                    this.subject.next(new Alert({ id }));
+                }
+              }
+            </textarea>
+          </ol>
+        </accordion-group>
+
+        <accordion-group heading="Criando interceptadores">
+          <p>Some content</p>
+        </accordion-group>
+
+        <accordion-group heading="Criando módulos de usuário e conta">
+          <p>Some content</p>
+        </accordion-group>
+
+        <accordion-group heading="Criando componentes">
+          <p>Some content</p>
+        </accordion-group>
+
+        <accordion-group heading="Criando rotas">
+          <p>Some content</p>
+        </accordion-group>
+
+    </accordion>
+</div>
