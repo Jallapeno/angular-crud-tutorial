@@ -168,7 +168,48 @@
         </accordion-group>
 
         <accordion-group heading="Configurações iniciais recomendadas">
-          <p>Some content</p>
+          <p>
+            O arquivo <code>tsconfig.base.json</code> contém a configuração base do compilador TypeScript para todos os projetos 
+            no espaço de trabalho Angular, ele configura como o código TypeScript será <code>compilado/transpilado</code> em JavaScript 
+            que é compreendido pelo navegador. Para obter mais informações, 
+            consulte <a href="https://angular.io/config/tsconfig">angular.io/config/tsconfig</a>.
+          </p>
+          <p>
+            A maior parte do arquivo permanece inalterada desde quando foi gerado pelo Angular CLI, apenas a pathspropriedade foi adicionada 
+            para mapear os aliases <code>@app</code> e <code>@environments</code> para os diretórios <code>/src/app</code> e <code>/src/environments</code>. 
+            Isso permite que as importações sejam relativas às pastas de aplicativos e ambientes, prefixando caminhos de importação 
+            com aliases em vez de ter que usar caminhos relativos longos<br>
+            (por exemplo, em <code>import MyComponent from '@app/MyComponent'</code> em vez de <code>import MyComponent from '../../../MyComponent'</code>).
+          </p>
+          <ol>
+            <li>Acesse o arquivo <code>tsconfig.base.json</code> na raiz do projeto</li>
+            <li>Adicione as informações abaixo</li>
+          </ol>
+          <textarea  class="p-3 mb-2 bg-dark text-white" cols="65" rows="24">
+            {
+              "compileOnSave": false,
+              "compilerOptions": {
+                "baseUrl": "./",
+                "outDir": "./dist/out-tsc",
+                "sourceMap": true,
+                "declaration": false,
+                "downlevelIteration": true,
+                "experimentalDecorators": true,
+                "moduleResolution": "node",
+                "importHelpers": true,
+                "target": "es2015",
+                "module": "es2020",
+                "lib": [
+                  "es2018",
+                  "dom"
+                ],
+                "paths": {
+                  "@app/*": ["src/app/*"],
+                  "@environments/*": ["src/environments/*"]
+                }
+              }
+            }
+          </textarea>
         </accordion-group>
 
         <accordion-group heading="Criando os modelos das classes">
@@ -224,12 +265,12 @@
           </ol>
         </accordion-group>
 
-        <accordion-group heading="Criando os Serviços">
+        <accordion-group heading="Criando os Serviços principais">
           <p>Após a criação das classes, podemos dar inicio a criação dos serviços que terão na aplicação. <code>account.service.ts</code> e <code>alert.service.ts</code></p>
           <p>O ideal seria você abrir o terminal na pasta do projeto pois vamos rodas alguns comandos do angular CLI.</p>
           <ol>
-            <li>No seu terminal rode o comando <code>ng g s services/account</code></li>
-            <li>No mesmo terminal rode o comando <code>ng g s services/alert</code></li>
+            <li>No seu terminal execute o comando <code>ng g s services/account</code></li>
+            <li>No mesmo terminal execute o comando <code>ng g s services/alert</code></li>
             <li>Após os comandos acima uma pasta será criada. Crie um arquivo <code>index.ts</code> dentro da pasta <code>/services</code> que foi criada</li>
             <li>Acesse o arquivo <code>account.service.ts</code>
               <h5>serviço de conta</h5>
@@ -404,19 +445,235 @@
           </ol>
         </accordion-group>
 
-        <accordion-group heading="Criando interceptadores">
-          <p>Some content</p>
+        <accordion-group heading="Criando e entendendo o serviço Auth Guard">
+          <p>
+            O serviço <code>Auth Guard</code> é um protetor de rota angular usado para evitar que usuários não autenticados acessem rotas restritas, 
+            ele faz isso implementando a interface <code>CanActivate</code> que permite ao protetor decidir se uma rota pode ser ativada com o método <code>canActivate()</code>. 
+            Se o método retornar <code>true</code> a rota é ativada e o usuário tem permissão para prosseguir, caso contrário, 
+            se o método retornar <code>false</code> a rota é bloqueada.
+          </p>
+          <ol>
+            <li>No seu terminal execute o comando <code>ng g s helpers/auth-guard</code></li>
+            <li>Acesse o arquivo <code>helpers/auth-guard.service.ts</code> e preencha com as seguintes informações</li>
+          </ol>
+          <textarea  class="p-3 mb-2 bg-dark text-white" cols="120" rows="29">
+            import { Injectable } from '@angular/core';
+            import { Router, CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
+
+            import { AccountService } from '@app/services';
+
+            @Injectable({
+              providedIn: 'root'
+            })
+            export class AuthGuardService implements CanActivate {
+
+              constructor(
+                private router: Router,
+                private accountService: AccountService
+              ) {}
+
+              canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
+                const user = this.accountService.userValue;
+                if (user) {
+                    // Autorização para acessar a rota
+                    return true;
+                }
+
+                // Sem autorização para acessar a rota
+                this.router.navigate(['/account/login'], { queryParams: { returnUrl: state.url }});
+                return false;
+              }
+            }
+          </textarea>
+        </accordion-group>
+
+        <accordion-group heading="Criando e entendendo interceptadores">
+          <h5>Interceptador de Erros</h5>
+          <p>
+            O <code>Error Interceptor</code> é um serviço que intercepta as respostas http da api para verificar se houve algum erro. 
+            Se houver uma resposta <code>401 Unauthorized</code> ou, <code>403 Forbidden</code> o usuário é desconectado 
+            automaticamente do aplicativo, todos os outros erros são reenviados ao serviço de 
+            chamada para que um alerta com o erro possa ser exibido na tela.
+          </p>
+          <p>
+            É implementado usando a interface Angular <code>HttpInterceptor</code> incluída no <code>HttpClientModule</code>, 
+            ao implementar a interface HttpInterceptor, você pode criar um interceptador personalizado 
+            para capturar todas as respostas de erro do servidor em um único local.
+          </p>
+          <p>
+            Os interceptores HTTP serão adicionados ao pipeline de solicitação na seção de provedores do arquivo <code>app.module.ts</code>.
+          </p>
+          <ol>
+            <li>No terminal execute o comando <code>ng g s helpers/error-interceptor</code></li>
+            <li>Acesse o arquivo <code>helpers/error-interceptor.service.ts</code></li>
+            <li>Preencha com as informações abaixo</li>
+          </ol>
+          <textarea  class="p-3 mb-2 bg-dark text-white" cols="120" rows="29">
+            import { Injectable } from '@angular/core';
+            import { HttpRequest, HttpHandler, HttpEvent, HttpInterceptor } from '@angular/common/http';
+            import { Observable, throwError } from 'rxjs';
+            import { catchError } from 'rxjs/operators';
+            import { AccountService } from '@app/services';
+
+            @Injectable({
+              providedIn: 'root'
+            })
+            export class ErrorInterceptorService implements HttpInterceptor {
+
+              constructor(private accountService: AccountService) {}
+
+              intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+                return next.handle(request).pipe(catchError(err => {
+                    if ([401, 403].includes(err.status) && this.accountService.userValue) {
+                        // auto logout se for retornados erros 401 ou 403 da api
+                        this.accountService.logout();
+                    }
+
+                    const error = err.error?.message || err.statusText;
+                    console.error(err);
+                    return throwError(error);
+                }))
+              }
+            }
+          </textarea>
+          <h5>Interceptador JWT</h5>
+          <p>
+            O <code>JWT Interceptor</code> é um serviço que intercepta solicitações http do aplicativo para adicionar um token de autenticação JWT ao cabeçalho de autorização 
+            se o usuário estiver conectado e a solicitação for para a url da api que foi informada no arquivo <code>environment.apiUrl</code>.
+          </p>
+          <p>
+            É implementado usando a interface <code>HttpInterceptor</code> incluída no <code>HttpClientModule</code>, ao implementar a interface HttpInterceptor, 
+            você pode criar um interceptador personalizado para modificar as solicitações http antes que sejam enviadas ao servidor.
+          </p>
+          <p>
+            Os interceptores HTTP serão adicionados ao pipeline de solicitação na seção de provedores do arquivo <code>app.module.ts</code>.
+          </p>
+          <ol>
+            <li>No seu terminal execute o comando <code>ng g s helpers/jwt-interceptor</code></li>
+            <li>Acesse o arquivo <code>helpers/jwt-interceptor.service.ts</code></li>
+            <li>Preencha com as informações abaixo</li>
+          </ol>
+          <textarea  class="p-3 mb-2 bg-dark text-white" cols="125" rows="32">
+            import { Injectable } from '@angular/core';
+            import { HttpRequest, HttpHandler, HttpEvent, HttpInterceptor } from '@angular/common/http';
+            import { Observable } from 'rxjs';
+
+            import { environment } from '@environments/environment';
+            import { AccountService } from '@app/services';
+
+            @Injectable({
+              providedIn: 'root'
+            })
+            export class JwtInterceptorService implements HttpInterceptor {
+
+              constructor(private accountService: AccountService) { }
+
+              intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+                // Adicione o cabeçalho de autenticação com jwt se o usuário estiver logado e a solicitação for para o URL da API
+                const user = this.accountService.userValue;
+                const isLoggedIn = user && user.token;
+                const isApiUrl = request.url.startsWith(environment.apiUrl);
+                if (isLoggedIn && isApiUrl) {
+                    request = request.clone({
+                        setHeaders: {
+                            Authorization: `Bearer ${user.token}`
+                        }
+                    });
+                }
+
+                return next.handle(request);
+              }
+            }
+          </textarea>
+          <h5>index.js</h5>
+          <ol>
+            <li>Crie um arquivo <code>index.ts</code> dentro da pasta <code>helpers</code></li>
+            <li>Acesse o arquivo <code>helpers/index.ts</code> e preencha com as seguintes informações</li>
+          </ol>
+          <textarea  class="p-3 mb-2 bg-dark text-white" cols="80" rows="10">
+            import { AuthGuardService } from './auth-guard.service';
+            import { ErrorInterceptorService } from './error-interceptor.service';
+            import { JwtInterceptorService } from './jwt-interceptor.service';
+
+            export {
+                AuthGuardService,
+                ErrorInterceptorService,
+                JwtInterceptorService
+            }
+          </textarea>
         </accordion-group>
 
         <accordion-group heading="Criando módulos de usuário e conta">
+          <h5>Módulo de conta(account module)</h5>
+          <p>
+            O módulo de conta define o módulo de recurso para a seção de conta da aplicação junto com metadados sobre o módulo. 
+            Os <code>imports</code> especificam quais outros módulos angulares são exigidos por este módulo e o <code>declarations</code> estão setados 
+            os componentes que pertencem a este módulo. Para obter mais informações sobre os módulos angulares 10, 
+            consulte <a href="https://angular.io/docs/ts/latest/guide/ngmodule.html">angular.io/docs/ts/latest/guide/ngmodule.html</a>.
+          </p>
+          <p>
+            O módulo de conta será conectado posteriormente ao aplicativo principal dentro do módulo de roteamento de aplicativo(<code>app-routing.module.ts</code>)
+          </p>
+          <ol>
+            <li>No seu terminal execute o comando <code>ng g m account</code></li>
+            <li>Acesse o arquivo <code>account/account.module.ts</code> e preencha com as seguintes informações</li>
+          </ol>
+          <textarea  class="p-3 mb-2 bg-dark text-white" cols="80" rows="15">
+            import { NgModule } from '@angular/core';
+            import { ReactiveFormsModule } from '@angular/forms';
+            import { CommonModule } from '@angular/common';
+            
+            @NgModule({
+              declarations: [ ],
+              imports: [
+                NgModule,
+                CommonModule,
+                ReactiveFormsModule
+              ]
+            })
+            export class AccountModule { }            
+          </textarea>
+          <br>
+          <h5>Módulo de usuários(users module)</h5>
+          <p>
+            O módulo de usuários define o módulo de recursos para a seção de usuários da aplicação junto com os metadados sobre o módulo.
+          </p>
+          <p>
+            O módulo de conta será conectado posteriormente ao aplicativo principal dentro do módulo de roteamento de aplicativo(<code>app-routing.module.ts</code>)
+          </p>
+          <ol>
+            <li>No seu terminal execute o comando <code>ng g m users</code></li>
+            <li>Acesse o arquivo <code>account/users.module.ts</code> e preencha com as seguintes informações</li>
+          </ol>
+          <textarea  class="p-3 mb-2 bg-dark text-white" cols="80" rows="15">
+            import { NgModule } from '@angular/core';
+            import { CommonModule } from '@angular/common';
+            import { ReactiveFormsModule } from '@angular/forms';
+            
+            @NgModule({
+              declarations: [ ],
+              imports: [
+                CommonModule,
+                ReactiveFormsModule
+              ]
+            })
+            export class UsersModule { }            
+          </textarea>
+        </accordion-group>
+
+        <accordion-group heading="Criando os componentes do módulo principal">
           <p>Some content</p>
         </accordion-group>
 
-        <accordion-group heading="Criando componentes">
+        <accordion-group heading="Criando os componentes dos módulos independentes(account e users)">
           <p>Some content</p>
         </accordion-group>
 
-        <accordion-group heading="Criando rotas">
+        <accordion-group heading="Criando rotas dos módulos independentes(account e users)">
+          <p>Some content</p>
+        </accordion-group>
+
+        <accordion-group heading="Criando rotas do módulo principal">
           <p>Some content</p>
         </accordion-group>
 

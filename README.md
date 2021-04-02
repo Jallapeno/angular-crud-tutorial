@@ -2,6 +2,18 @@
 
 Esse projeto está sendo desenvolvido com [Angular CLI](https://github.com/angular/angular-cli) na versão 10.0.1.
 
+## Backend
+
+O backend da aplicação encontra-se no repositório <a href="https://github.com/cornflourblue/node-mysql-registration-login-api">node-mysql-registration-login-api</a> de Jason Watmore.
+
+Será necessário ter o NodeJs e o MySql instalados no seu computador. 
+
+* No caso do Node, pode encontrar no próprio site <a href="https://nodejs.org/pt-br/">nodejs.org</a> e seguir o tutorial. 
+* No caso do MySql
+    * Se seu sistema operacional for windows, poderá ser utilizado o <a href="https://www.apachefriends.org/pt_br/index.html">XAMPP</a>.
+    * Caso seja Linux, recomendo que acesse turorial e selecione seu sistema operacional <a href="https://dev.mysql.com/doc/refman/8.0/en/linux-installation.htmlhow-to-install-mysql-on-ubuntu-20-04-pt">how-to-install-mysql-on-ubuntu-20-04-pt</a>. 
+    * Se for MacOS então siga este tutorial <a href="https://dev.mysql.com/doc/mysql-osx-excerpt/5.7/en/osx-installation-pkg.html">dev.mysql.com/doc/mysql-osx-excerpt/5.7/en/osx-installation-pkg.html</a>
+
 ### Apoio
 
 João Evangelhista, professor de C, Java e Angular da universidade UniProjeção.
