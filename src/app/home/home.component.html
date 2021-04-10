@@ -662,19 +662,970 @@
         </accordion-group>
 
         <accordion-group heading="Criando os componentes do módulo principal">
-          <p>Some content</p>
+          <h5>Componente de alerta</h5>
+          <h6>alert.component.ts</h6>
+          <p>
+            O componente de alerta controla a adição e remoção de alertas, ele mantém uma série de alertas que são renderizados 
+            pelo template do componente.
+          </p>
+          <p>
+            O método <code>ngOnInit</code> assina o método observável retornado do <code>alertService.onAlert()</code>, 
+            isso permite que o componente de alerta seja notificado sempre que uma mensagem de alerta é enviada ao serviço de alerta 
+            e a adiciona à um array de alerts para exibição. Os alertas são apagados quando um alerta com uma mensagem vazia é 
+            recebido do serviço de alerta. 
+            O método <code>ngOnInit</code> também chama <code>router.events.subscribe()</code> 
+            para se inscrever em eventos de alteração de rota para que possa limpar automaticamente alertas sobre alterações de rota.
+          </p>
+          <p>
+            O método <code>ngOnDestroy()</code> cancela a assinatura do serviço de alerta e da rota quando o componente é destruído.
+          </p>
+          <p>
+            O método <code>removeAlert()</code> remove o objeto alert especificado da matriz, o que permite que alertas individuais sejam fechados.
+          </p>
+          <p>
+            O método <code>cssClass()</code> retorna uma classe de alerta de bootstrap correspondente para cada um dos tipos de alerta.
+          </p>
+          <ol>
+            <li>Abra seu terminal e execute o comando <code>ng g c components/alert</code></li>
+            <li>Acesse o arquivo <code>components/alert/alert.component.ts</code> e preencha com as informações abaixo</li>
+          </ol>
+          <textarea  class="p-3 mb-2 bg-dark text-white" cols="80" rows="99">
+            import { Component, OnInit, OnDestroy, Input } from '@angular/core';
+            import { Router, NavigationStart } from '@angular/router';
+            import { Subscription } from 'rxjs';
+            import { Alert, AlertType } from '@app/models';
+            import { AlertService } from '@app/services';
+
+            @Component({ 
+                selector: 'app-alert', 
+                templateUrl: './alert.component.html' 
+            })
+            export class AlertComponent implements OnInit, OnDestroy {
+              @Input() id = 'default-alert';
+              @Input() fade = true;
+
+              alerts: Alert[] = [];
+              alertSubscription: Subscription;
+              routeSubscription: Subscription;
+
+              constructor(private router: Router, private alertService: AlertService) { }
+
+                ngOnInit() {
+                  // subscribe to new alert notifications
+                  this.alertSubscription = this.alertService.onAlert(this.id)
+                      .subscribe(alert => {
+                          // clear alerts when an empty alert is received
+                          if (!alert.message) {
+                              // filter out alerts without 'keepAfterRouteChange' flag
+                              this.alerts = this.alerts.filter(x => x.keepAfterRouteChange);
+
+                              // remove 'keepAfterRouteChange' flag on the rest
+                              this.alerts.forEach(x => delete x.keepAfterRouteChange);
+                              return;
+                          }
+
+                          // add alert to array
+                          this.alerts.push(alert);
+
+                          // auto close alert if required
+                          if (alert.autoClose) {
+                              setTimeout(() => this.removeAlert(alert), 3000);
+                          }
+                    });
+
+                  // clear alerts on location change
+                  this.routeSubscription = this.router.events.subscribe(event => {
+                      if (event instanceof NavigationStart) {
+                          this.alertService.clear(this.id);
+                      }
+                  });
+              }
+
+              ngOnDestroy() {
+                  // unsubscribe to avoid memory leaks
+                  this.alertSubscription.unsubscribe();
+                  this.routeSubscription.unsubscribe();
+              }
+
+              removeAlert(alert: Alert) {
+                  // check if already removed to prevent error on auto close
+                  if (!this.alerts.includes(alert)) return;
+
+                  if (this.fade) {
+                      // fade out alert
+                      alert.fade = true;
+
+                      // remove alert after faded out
+                      setTimeout(() => {
+                          this.alerts = this.alerts.filter(x => x !== alert);
+                      }, 250);
+                  } else {
+                      // remove alert
+                      this.alerts = this.alerts.filter(x => x !== alert);
+                  }
+              }
+
+              cssClass(alert: Alert) {
+                  if (!alert) return;
+
+                  const classes = ['alert', 'alert-dismissable', 'mt-4', 'container'];
+                          
+                  const alertTypeClass = {
+                      [AlertType.Success]: 'alert alert-success',
+                      [AlertType.Error]: 'alert alert-danger',
+                      [AlertType.Info]: 'alert alert-info',
+                      [AlertType.Warning]: 'alert alert-warning'
+                  }
+
+                  classes.push(alertTypeClass[alert.type]);
+
+                  if (alert.fade) {
+                      classes.push('fade');
+                  }
+
+                  return classes.join(' ');
+              }
+
+            }
+          </textarea>
+          <br>
+          <h6>alert.component.html</h6>
+          <ol>
+            <li>Acesse o aquivo <code>components/alert/alert.component.html</code> e preencha com as informações abaixo</li>
+          </ol>
+          <textarea  class="p-3 mb-2 bg-dark text-white" cols="80" rows="5">
+            <div *ngFor="let alert of alerts" class="{ { cssClass(alert) } }">
+              <a class="close" (click)="removeAlert(alert)">&times;</a>
+              <span [innerHTML]="alert.message"></span>
+            </div>
+          </textarea>
+          <h6>arquivo index.ts</h6>
+          <ol>
+            <li>Crie um arquivo <code>index.ts</code> dentro da pasta <code>components</code> que foi criada e preencha com as seguintes informações</li>
+          </ol>
+          <textarea  class="p-3 mb-2 bg-dark text-white" cols="80" rows="5">
+            import { AlertComponent } from './alert/alert.component';
+            export {
+                AlertComponent
+            }
+          </textarea>
         </accordion-group>
 
-        <accordion-group heading="Criando os componentes dos módulos independentes(account e users)">
-          <p>Some content</p>
+        <accordion-group heading="Criando os componentes do módulo de conta(account module)">
+          <h5>Componentes do módulo de conta(account module)</h5>
+          <h6>Componente principal de layout</h6>
+          <p>
+            O componente de layout é o componente raiz do módulo de conta, ele vincula outros componentes do módulo 
+            ao modelo de layout com a propriedade <code>templateUrl</code> do 
+            decorador angular <code>@Component</code> e redireciona automaticamente o usuário para a 
+            página inicial se ele já estiver conectado. 
+          </p>
+          <ol>
+            <li>No seu terminal execute o comando <code>ng g c account/layout</code></li>
+            <li>Acesse o arquivo <code>account/layout/layout.component.ts</code> e preencha com as seguintes informações</li>
+          </ol>
+          <textarea  class="p-3 mb-2 bg-dark text-white" cols="80" rows="22">
+            import { Component } from '@angular/core';
+            import { Router } from '@angular/router';
+            import { AccountService } from '@app/services';
+
+            @Component({
+              selector: 'app-layout',
+              templateUrl: './layout.component.html',
+            })
+            export class LayoutComponent {
+
+              constructor(
+                private router: Router,
+                private accountService: AccountService
+              ) {
+                  // redireciona para o home caso esteja logado
+                  if (this.accountService.userValue) {
+                      this.router.navigate(['/']);
+                  }
+              }
+
+            }
+          </textarea>
+          <br>
+          <h6>layout.component.html</h6>
+          <p>
+            O componente html de layout contém o HTML externo para todas as páginas da conta 
+            e um <code>router-outlet</code> para renderizar o componente atualmente roteado
+          </p>
+          <ol>
+            <li>Acesse o arquivo <code>account/layout/layout.component.html</code> e preencha com as seguintes informações</li>
+          </ol>
+          <textarea  class="p-3 mb-2 bg-dark text-white" cols="80" rows="4">
+            <div class="col-md-6 offset-md-3 mt-5">
+              <router-outlet></router-outlet>
+            </div>
+          </textarea>
+          <br>
+          <h6>Componente de login</h6>
+          <p>
+            O componente de login usa o serviço de conta para fazer login no aplicativo no envio do formulário. 
+            Ele cria os campos do formulário e validadores usando um <code>Angular FormBuilder</code> para 
+            criar uma instância de um <code>FormGroup</code> que está armazenado na propriedade <code>form</code>. 
+            O <code>form</code> é então vinculado ao elemento html <code>form</code> no modelo de componente de login usando a 
+            diretiva <code>[formGroup]</code>.
+          </p>
+          <p>
+            O componente contém uma propriedade de <code>get</code> de conveniência <code>f</code> para tornar um pouco mais fácil acessar 
+            os controles do formulário, por exemplo, você pode acessar o campo de senha no modelo 
+            usando <code>f.password</code> em vez de <code>form.controls.password</code>.
+          </p>
+          <ol>
+            <li>Acesse seu terminal e execute o comando <code>ng g c account/login</code></li>
+            <li>Acesse o arquivo <code>account/login/login.component.ts</code> e preencha com as seguintes informações</li>
+          </ol>
+          <textarea  class="p-3 mb-2 bg-dark text-white" cols="100" rows="65">
+            import { Component, OnInit } from '@angular/core';
+            import { Router, ActivatedRoute } from '@angular/router';
+            import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+            import { first } from 'rxjs/operators';
+            import { AccountService, AlertService } from '@app/services';
+
+            @Component({
+              selector: 'app-login',
+              templateUrl: './login.component.html',
+            })
+            export class LoginComponent implements OnInit {
+              form: FormGroup;
+              loading = false;
+              submitted = false;
+
+
+              constructor(
+                private formBuilder: FormBuilder,
+                private route: ActivatedRoute,
+                private router: Router,
+                private accountService: AccountService,
+                private alertService: AlertService
+              ) { }
+
+              ngOnInit() {
+                this.form = this.formBuilder.group({
+                  username: ['', Validators.required],
+                  password: ['', Validators.required]
+                });
+              }
+
+              // convenience getter for easy access to form fields
+              get f() { return this.form.controls; }
+
+              onSubmit() {
+                  this.submitted = true;
+
+                  // reset alerts on submit
+                  this.alertService.clear();
+
+                  // stop here if form is invalid
+                  if (this.form.invalid) {
+                      return;
+                  }
+
+                  this.loading = true;
+                  this.accountService.login(this.f.username.value, this.f.password.value)
+                      .pipe(first())
+                      .subscribe({
+                          next: () => {
+                              // get return url from query parameters or default to home page
+                              const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
+                              this.router.navigateByUrl(returnUrl);
+                          },
+                          error: error => {
+                              this.alertService.error(error);
+                              this.loading = false;
+                          }
+                      });
+              }
+
+            }
+          </textarea>
+          <br>
+          <p>
+            O modelo de componente HTML de login contém um formulário de login com campos de nome de usuário e senha. 
+            Ele exibe mensagens de validação para campos inválidos quando o botão de envio é clicado. 
+            O evento de envio de formulário está vinculado ao método <code>onSubmit()</code> do componente de login.
+          </p>
+          <p>
+            O componente usa validação de formulário reativo para validar os campos de entrada, para mais 
+            informações sobre validação de formulário reativo angular consulte o tutorial 
+            <a href="https://jasonwatmore.com/post/2020/07/07/angular-10-reactive-forms-validation-example">Angular 10 - Exemplo de validação de formulários reativos</a>.
+          </p>
+          <ol>
+            <li>Acesse o arquivo <code>account/login/login.component.html</code> e preencha com as seguintes informações</li>
+          </ol>
+          <textarea  class="p-3 mb-2 bg-dark text-white" cols="120" rows="33">
+            <div class="card">
+              <h4 class="card-header">Login</h4>
+              <div class="card-body">
+                  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+                      <div class="form-group">
+                          <label for="username">Username</label>
+                          <input type="text" formControlName="username" class="form-control" 
+                          [ngClass]="{ 'is-invalid': submitted && f.username.errors }" />
+                          <div *ngIf="submitted && f.username.errors" class="invalid-feedback">
+                              <div *ngIf="f.username.errors.required">Username is required</div>
+                          </div>
+                      </div>
+                      <div class="form-group">
+                          <label for="password">Password</label>
+                          <input type="password" formControlName="password" class="form-control" 
+                          [ngClass]="{ 'is-invalid': submitted && f.password.errors }" />
+                          <div *ngIf="submitted && f.password.errors" class="invalid-feedback">
+                              <div *ngIf="f.password.errors.required">Password is required</div>
+                          </div>
+                      </div>
+                      <div class="form-group">
+                          <button [disabled]="loading" class="btn btn-primary">
+                              <span *ngIf="loading" class="spinner-border spinner-border-sm mr-1"></span>
+                              Login
+                          </button>
+                          <a routerLink="../register" class="btn btn-link">Register</a>
+                      </div>
+                  </form>
+              </div>
+            </div>
+          </textarea>
+          <br>
+          <h6>Componente de cadastro</h6>
+          <ol>
+            <li>Acesse seu terminal e execute o comando <code>ng g c account/register</code></li>
+            <li>Acesse o arquivo <code>account/register/register.component.ts</code> e preencha com as seguintes informações</li>
+          </ol>
+          <textarea  class="p-3 mb-2 bg-dark text-white" cols="120" rows="63">
+            import { Component, OnInit } from '@angular/core';
+            import { Router, ActivatedRoute } from '@angular/router';
+            import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+            import { first } from 'rxjs/operators';
+            import { AccountService, AlertService } from '@app/services';
+  
+            @Component({
+              selector: 'app-register',
+              templateUrl: './register.component.html'
+            })
+            export class RegisterComponent implements OnInit {
+              form: FormGroup;
+              loading = false;
+              submitted = false;
+  
+              constructor(
+                private formBuilder: FormBuilder,
+                private route: ActivatedRoute,
+                private router: Router,
+                private accountService: AccountService,
+                private alertService: AlertService
+              ) { }
+  
+              ngOnInit() {
+                this.form = this.formBuilder.group({
+                    firstName: ['', Validators.required],
+                    lastName: ['', Validators.required],
+                    username: ['', Validators.required],
+                    password: ['', [Validators.required, Validators.minLength(6)]]
+                });
+              }
+  
+              // convenience getter for easy access to form fields
+              get f() { return this.form.controls; }
+  
+              onSubmit() {
+                  this.submitted = true;
+  
+                  // reset alerts on submit
+                  this.alertService.clear();
+  
+                  // stop here if form is invalid
+                  if (this.form.invalid) {
+                      return;
+                  }
+  
+                  this.loading = true;
+                  this.accountService.register(this.form.value)
+                      .pipe(first())
+                      .subscribe({
+                          next: () => {
+                              this.alertService.success('Registration successful', { keepAfterRouteChange: true });
+                              this.router.navigate(['../login'], { relativeTo: this.route });
+                          },
+                          error: error => {
+                              this.alertService.error(error);
+                              this.loading = false;
+                          }
+                      });
+              }
+  
+            }
+          </textarea>
+          <br>
+          <ol>
+            <li>Acesse o arquivo <code>account/register/register.component.html</code> e preencha com as seguintes informações</li>
+          </ol>
+          <textarea  class="p-3 mb-2 bg-dark text-white" cols="120" rows="48">
+            <div class="card">
+              <h4 class="card-header">Register</h4>
+              <div class="card-body">
+                  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+                      <div class="form-group">
+                          <label for="firstName">First Name</label>
+                          <input type="text" formControlName="firstName" class="form-control" 
+                          [ngClass]="{ 'is-invalid': submitted && f.firstName.errors }" />
+                          <div *ngIf="submitted && f.firstName.errors" class="invalid-feedback">
+                              <div *ngIf="f.firstName.errors.required">First Name is required</div>
+                          </div>
+                      </div>
+                      <div class="form-group">
+                          <label for="lastName">Last Name</label>
+                          <input type="text" formControlName="lastName" class="form-control" 
+                          [ngClass]="{ 'is-invalid': submitted && f.lastName.errors }" />
+                          <div *ngIf="submitted && f.lastName.errors" class="invalid-feedback">
+                              <div *ngIf="f.lastName.errors.required">Last Name is required</div>
+                          </div>
+                      </div>
+                      <div class="form-group">
+                          <label for="username">Username</label>
+                          <input type="text" formControlName="username" class="form-control" 
+                          [ngClass]="{ 'is-invalid': submitted && f.username.errors }" />
+                          <div *ngIf="submitted && f.username.errors" class="invalid-feedback">
+                              <div *ngIf="f.username.errors.required">Username is required</div>
+                          </div>
+                      </div>
+                      <div class="form-group">
+                          <label for="password">Password</label>
+                          <input type="password" formControlName="password" class="form-control" 
+                          [ngClass]="{ 'is-invalid': submitted && f.password.errors }" />
+                          <div *ngIf="submitted && f.password.errors" class="invalid-feedback">
+                              <div *ngIf="f.password.errors.required">Password is required</div>
+                              <div *ngIf="f.password.errors.minlength">Password must be at least 6 characters</div>
+                          </div>
+                      </div>
+                      <div class="form-group">
+                          <button [disabled]="loading" class="btn btn-primary">
+                              <span *ngIf="loading" class="spinner-border spinner-border-sm mr-1"></span>
+                              Register
+                          </button>
+                          <a routerLink="../login" class="btn btn-link">Cancel</a>
+                      </div>
+                  </form>
+              </div>
+            </div>
+          </textarea>
+          <br>
+          <h6>arquivo index.ts</h6>
+          <ol>
+            <li>crie um arquivo <code>index.ts</code> na raíz da pasta <code>account</code> e preencha com as seguintes informações</li>
+          </ol>
+          <textarea  class="p-3 mb-2 bg-dark text-white" cols="120" rows="10">
+            import { LayoutComponent } from './layout/layout.component';
+            import { LoginComponent } from './login/login.component';
+            import { RegisterComponent } from './register/register.component';
+
+            export {
+                LayoutComponent,
+                LoginComponent,
+                RegisterComponent
+            }
+          </textarea>
+        </accordion-group>
+
+        <accordion-group heading="Criando os componentes do módulo de usuários(users module)">
+          <h6>Componente principal de layout</h6>
+          <p>
+            O componente de layout é o componente raiz do módulo de usuário, ele vincula outros componentes do módulo 
+            ao modelo de layout com a propriedade <code>templateUrl</code> do 
+            decorador angular <code>@Component</code>
+          </p>
+          <ol>
+            <li>No seu terminal execute o comando <code>ng g c users/layout</code></li>
+            <li>Acesse o arquivo <code>users/layout/layout.component.ts</code> e preencha com as seguintes informações</li>
+          </ol>
+          <textarea  class="p-3 mb-2 bg-dark text-white" cols="80" rows="8">
+            import { Component } from '@angular/core';
+
+            @Component({
+              selector: 'app-layout',
+              templateUrl: './layout.component.html',
+            })
+            export class LayoutComponent { }
+          </textarea>
+          <br>
+          <h6>layout.component.html</h6>
+          <p>
+            O componente html de layout contém o HTML externo para todas os componentes do módulo de usuários 
+            e um <code>router-outlet</code> para renderizar o componente atualmente roteado
+          </p>
+          <ol>
+            <li>Acesse o arquivo <code>users/layout/layout.component.html</code> e preencha com as seguintes informações</li>
+          </ol>
+          <textarea  class="p-3 mb-2 bg-dark text-white" cols="80" rows="6">
+            <div class="p-4">
+              <div class="container">
+                  <router-outlet></router-outlet>
+              </div>
+            </div>
+          </textarea>
+          <br>
+          <h6>Componente de lista de usuários</h6>
+          <p>
+            O componente de lista de usuários obtém todos os usuários do serviço de conta no método <code>ngOnInit()</code> 
+            e os disponibiliza para o modelo de lista de usuários por meio da propriedade <code>users</code>.
+          </p>
+          <p>
+            O método <code>deleteUser()</code> primeiro define a propriedade <code>user.isDeleting = true</code> para que o modelo 
+            exiba um efeito giratório no botão de exclusão, ele então chama <code>this.accountService.delete()</code> 
+            para excluir o usuário e remove o usuário excluído do array de usuários do componentes para que seja removido da tela.
+          </p>
+          <ol>
+            <li>No seu terminal execute o comando <code>ng g c users/list</code></li>
+            <li>Acesse o arquivo <code>users/list/list.component.ts</code> e preencha com as seguintes informações</li>
+          </ol>
+          <textarea  class="p-3 mb-2 bg-dark text-white" cols="120" rows="29">
+            import { Component, OnInit } from '@angular/core';
+            import { first } from 'rxjs/operators';
+            import { AccountService } from '@app/services';
+
+            @Component({
+              selector: 'app-list',
+              templateUrl: './list.component.html',
+            })
+            export class ListComponent implements OnInit {
+              users = null;
+
+              constructor(private accountService: AccountService) {}
+
+              ngOnInit() {
+                  this.accountService.getAll()
+                      .pipe(first())
+                      .subscribe(users => this.users = users);
+              }
+
+              deleteUser(id: string) {
+                  const user = this.users.find(x => x.id === id);
+                  user.isDeleting = true;
+                  this.accountService.delete(id)
+                      .pipe(first())
+                      .subscribe(() => this.users = this.users.filter(x => x.id !== id));
+              }
+
+            }
+          </textarea>
+          <br>
+          <h6>Componente HTML de lista de usuários</h6>
+          <p>
+            O modelo de componente HTML de lista de usuários exibe uma lista de todos os usuários e 
+            contém botões para adicionar, editar e excluir usuários.
+          </p>
+          <ol>
+            <li>Acesse o arquivo <code>list.component.html</code> e preencha com as seguintes informações</li>
+          </ol>
+          <textarea  class="p-3 mb-2 bg-dark text-white" cols="120" rows="34">
+            <h1>Users</h1>
+            <a routerLink="add" class="btn btn-sm btn-success mb-2">Add User</a>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th style="width: 30%">First Name</th>
+                        <th style="width: 30%">Last Name</th>
+                        <th style="width: 30%">Username</th>
+                        <th style="width: 10%"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let user of users">
+                        <td>{ { user.firstName } }</td>
+                        <td>{ { user.lastName } }</td>
+                        <td>{ { user.username } }</td>
+                        <td style="white-space: nowrap">
+                            <a routerLink="edit/{{user.id}}" class="btn btn-sm btn-primary mr-1">Edit</a>
+                            <button (click)="deleteUser(user.id)" 
+                            class="btn btn-sm btn-danger btn-delete-user" [disabled]="user.isDeleting">
+                                <span *ngIf="user.isDeleting" class="spinner-border spinner-border-sm"></span>
+                                <span *ngIf="!user.isDeleting">Delete</span>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr *ngIf="!users">
+                        <td colspan="4" class="text-center">
+                            <span class="spinner-border spinner-border-lg align-center"></span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+          </textarea>
+          <br>
+          <h6>Componente de adicionar e ditar usuários</h6>
+          <p>
+            O componente de adição/edição de usuários é usado para adicionar e editar usuários, o componente está no "modo de adição" 
+            quando não há parâmetro de id do usuário passando na rota caso contrário, está no "modo de edição". 
+            A propriedade <code>isAddMode</code> é usada para alterar o comportamento do componente com base no modo em que está, 
+            por exemplo, no "modo adicionar" o campo de senha é obrigatório e no "modo de edição" (<code>!this.isAddMode</code>) 
+            o serviço de conta é chamado quando o componente é inicializado para obter o detalhes do usuário (<code>this.accountService.getById(this.id)</code>) 
+            para predefinir os valores do campo.
+          </p>
+          <p>
+            No envio, um usuário é criado ou atualizado chamando o serviço de conta e, em caso de sucesso, 
+            você é redirecionado de volta à página da lista de usuários com uma mensagem de sucesso.
+          </p>
+          <ol>
+            <li>No seu terminal execute o comando <code>ng g c users/add-edit</code></li>
+            <li>Acesse o arquivo <code>users/add-edit/add-edit.component.ts</code> e preencha com as seguintes informações</li>
+          </ol>
+          <textarea  class="p-3 mb-2 bg-dark text-white" cols="120" rows="105">
+            import { Component, OnInit } from '@angular/core';
+            import { Router, ActivatedRoute } from '@angular/router';
+            import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+            import { first } from 'rxjs/operators';
+
+            import { AccountService, AlertService } from '@app/services';
+
+            @Component({
+              selector: 'app-add-edit',
+              templateUrl: './add-edit.component.html',
+            })
+            export class AddEditComponent implements OnInit {
+              form: FormGroup;
+              id: string;
+              isAddMode: boolean;
+              loading = false;
+              submitted = false;
+
+              constructor(
+                private formBuilder: FormBuilder,
+                private route: ActivatedRoute,
+                private router: Router,
+                private accountService: AccountService,
+                private alertService: AlertService
+              ) { }
+
+              ngOnInit() {
+                this.id = this.route.snapshot.params['id'];
+                this.isAddMode = !this.id;
+                
+                // password not required in edit mode
+                const passwordValidators = [Validators.minLength(6)];
+                if (this.isAddMode) {
+                    passwordValidators.push(Validators.required);
+                }
+
+                this.form = this.formBuilder.group({
+                    firstName: ['', Validators.required],
+                    lastName: ['', Validators.required],
+                    username: ['', Validators.required],
+                    password: ['', passwordValidators]
+                });
+
+                if (!this.isAddMode) {
+                    this.accountService.getById(this.id)
+                        .pipe(first())
+                        .subscribe(x => this.form.patchValue(x));
+                }
+              }
+
+              // convenience getter for easy access to form fields
+              get f() { return this.form.controls; }
+
+              onSubmit() {
+                  this.submitted = true;
+
+                  // reset alerts on submit
+                  this.alertService.clear();
+
+                  // stop here if form is invalid
+                  if (this.form.invalid) {
+                      return;
+                  }
+
+                  this.loading = true;
+                  if (this.isAddMode) {
+                      this.createUser();
+                  } else {
+                      this.updateUser();
+                  }
+              }
+
+              private createUser() {
+                  this.accountService.register(this.form.value)
+                      .pipe(first())
+                      .subscribe({
+                          next: () => {
+                              this.alertService.success('User added successfully', { keepAfterRouteChange: true });
+                              this.router.navigate(['../'], { relativeTo: this.route });
+                          },
+                          error: error => {
+                              this.alertService.error(error);
+                              this.loading = false;
+                          }
+                      });
+              }
+
+              private updateUser() {
+                  this.accountService.update(this.id, this.form.value)
+                      .pipe(first())
+                      .subscribe({
+                          next: () => {
+                              this.alertService.success('Update successful', { keepAfterRouteChange: true });
+                              this.router.navigate(['../../'], { relativeTo: this.route });
+                          },
+                          error: error => {
+                              this.alertService.error(error);
+                              this.loading = false;
+                          }
+                      });
+              }
+
+            }
+          </textarea>
+          <br>
+          <h6>Componente HTML de lista de adicionar e editar usuários</h6>
+          <p>
+            O modelo de componente de adição/edição de usuários contém um formulário dinâmico que oferece suporte à criação e atualização 
+            de usuários. A propriedade <code>isAddMode</code> é usada para alterar o que é exibido com base em qual modo está, por exemplo, 
+            o título do formulário e a mensagem opcional de senha.
+          </p>
+          <ol>
+            <li>Acesse o arquivo <code>users/add-edit/add-edit.component.html</code> e preencha com as seguintes informações</li>
+          </ol>
+          <textarea  class="p-3 mb-2 bg-dark text-white" cols="120" rows="52">
+            <h1 *ngIf="isAddMode">Add User</h1>
+            <h1 *ngIf="!isAddMode">Edit User</h1>
+            <form [formGroup]="form" (ngSubmit)="onSubmit()">
+                <div class="form-row">
+                    <div class="form-group col">
+                        <label for="firstName">First Name</label>
+                        <input type="text" formControlName="firstName" class="form-control" 
+                        [ngClass]="{ 'is-invalid': submitted && f.firstName.errors }" />
+                        <div *ngIf="submitted && f.firstName.errors" class="invalid-feedback">
+                            <div *ngIf="f.firstName.errors.required">First Name is required</div>
+                        </div>
+                    </div>
+                    <div class="form-group col">
+                        <label for="lastName">Last Name</label>
+                        <input type="text" formControlName="lastName" class="form-control" 
+                        [ngClass]="{ 'is-invalid': submitted && f.lastName.errors }" />
+                        <div *ngIf="submitted && f.lastName.errors" class="invalid-feedback">
+                            <div *ngIf="f.lastName.errors.required">Last Name is required</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col">
+                        <label for="username">Username</label>
+                        <input type="text" formControlName="username" class="form-control" 
+                        [ngClass]="{ 'is-invalid': submitted && f.username.errors }" />
+                        <div *ngIf="submitted && f.username.errors" class="invalid-feedback">
+                            <div *ngIf="f.username.errors.required">Username is required</div>
+                        </div>
+                    </div>
+                    <div class="form-group col">
+                        <label for="password">
+                            Password
+                            <em *ngIf="!isAddMode">(Leave blank to keep the same password)</em>
+                        </label>
+                        <input type="password" formControlName="password" class="form-control" 
+                        [ngClass]="{ 'is-invalid': submitted && f.password.errors }" />
+                        <div *ngIf="submitted && f.password.errors" class="invalid-feedback">
+                            <div *ngIf="f.password.errors.required">Password is required</div>
+                            <div *ngIf="f.password.errors.minlength">Password must be at least 6 characters</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <button [disabled]="loading" class="btn btn-primary">
+                        <span *ngIf="loading" class="spinner-border spinner-border-sm mr-1"></span>
+                        Save
+                    </button>
+                    <a routerLink="/users" class="btn btn-link">Cancel</a>
+                </div>
+            </form>
+          </textarea>
         </accordion-group>
 
         <accordion-group heading="Criando rotas dos módulos independentes(account e users)">
-          <p>Some content</p>
+          <h6>
+            Módulo de roteamento do módulo de conta(account module)
+          </h6>
+          <p>
+            O módulo de roteamento de conta define as rotas para o módulo de conta. 
+            Inclui rotas para login e registro de usuário e uma rota primária para o 
+            componente de layout que contém o componente de layout do módulo de conta.
+          </p>
+          <ol>
+            <li>
+              Crie um arquivo com o nome <code>account-routing.module.ts</code> na raíz da pasta <code>/account</code>
+            </li>
+            <li>
+              Acesse o arquivo <code>account/account-routing.module.ts</code> e preencha com as seguintes informações
+            </li>
+          </ol>
+          <textarea  class="p-3 mb-2 bg-dark text-white" cols="120" rows="21">
+            import { NgModule } from '@angular/core';
+            import { Routes, RouterModule } from '@angular/router';
+
+            import { LayoutComponent, RegisterComponent, LoginComponent } from './index';
+
+            const routes: Routes = [
+                {
+                    path: '', component: LayoutComponent,
+                    children: [
+                        { path: 'login', component: LoginComponent },
+                        { path: 'register', component: RegisterComponent }
+                    ]
+                }
+            ];
+
+            @NgModule({
+                imports: [RouterModule.forChild(routes)],
+                exports: [RouterModule]
+            })
+            export class AccountRoutingModule { }
+          </textarea>
+          <br>
+          <h6>
+            Módulo de roteamento do módulo de usuários(users module)
+          </h6>
+          <p>
+            O módulo de roteamento de usuários define as rotas para o módulo de usuários. 
+            Inclui rotas para listar, adicionar e editar usuários e uma rota primária para o 
+            componente de layout que contém o componente de layout do módulo de conta.
+          </p>
+          <p>
+            As rotas de adição e edição são diferentes, mas ambas carregam o mesmo componente 
+            (<code>AddEditComponent</code>) que modifica seu comportamento com base na rota.
+          </p>
+          <ol>
+            <li>
+              Crie um arquivo com o nome <code>users-routing.module.ts</code> na raíz da pasta <code>/users</code>
+            </li>
+            <li>
+              Acesse o arquivo <code>users/users-routing.module.ts</code> e preencha com as seguintes informações
+            </li>
+          </ol>
+          <textarea  class="p-3 mb-2 bg-dark text-white" cols="120" rows="22">
+            import { NgModule } from '@angular/core';
+            import { Routes, RouterModule } from '@angular/router';
+
+            import { LayoutComponent, AddEditComponent, ListComponent } from './index';
+
+            const routes: Routes = [
+                {
+                    path: '', component: LayoutComponent,
+                    children: [
+                        { path: '', component: ListComponent },
+                        { path: 'add', component: AddEditComponent },
+                        { path: 'edit/:id', component: AddEditComponent }
+                    ]
+                }
+            ];
+
+            @NgModule({
+                imports: [RouterModule.forChild(routes)],
+                exports: [RouterModule]
+            })
+            export class UsersRoutingModule { }
+          </textarea>
         </accordion-group>
 
         <accordion-group heading="Criando rotas do módulo principal">
-          <p>Some content</p>
+          <p>
+            O módulo de roteamento principal define as rotas de nível superior para o aplicativo e 
+            gera um módulo de roteamento raiz passando a matriz de <code>routes</code> para o 
+            método <code>RouterModule.forRoot()</code>. 
+            O módulo é importado para o módulo de aplicativo principal <code>app.module.ts</code>.
+          </p>
+          <p>
+            A rota inicial mapeia o caminho raiz do aplicativo para o home componente, 
+            os mapas de rota dos usuários para o módulo de usuários e os mapas de rota da 
+            conta para o módulo de conta. As rotas de conta e de usuários são protegidas 
+            passando a guarda de autorização(<code>auth-guard.service.ts</code>) 
+            para a propriedade <code>canActivate</code> de cada rota.
+          </p>
+          <ol>
+            <li>
+              Crie um arquivo com o nome <code>app-routing.module.ts</code> na raíz da pasta <code>/app</code>
+            </li>
+            <li>
+              Acesse o arquivo <code>app/app-routing.module.ts</code> e preencha com as seguintes informações
+            </li>
+          </ol>
+          <textarea  class="p-3 mb-2 bg-dark text-white" cols="120" rows="24">
+            import { NgModule } from '@angular/core';
+            import { Routes, RouterModule } from '@angular/router';
+
+            import { HomeComponent } from './home';
+            import { AuthGuardService } from './helpers';
+
+            const accountModule = () => import('./account/account.module').then(x => x.AccountModule);
+            const usersModule = () => import('./users/users.module').then(x => x.UsersModule);
+
+            const routes: Routes = [
+                { path: '', component: HomeComponent, canActivate: [AuthGuardService] },
+                { path: 'users', loadChildren: usersModule, canActivate: [AuthGuardService] },
+                { path: 'account', loadChildren: accountModule },
+
+                // otherwise redirect to home
+                { path: '**', redirectTo: '' }
+            ];
+
+            @NgModule({
+                imports: [RouterModule.forRoot(routes)],
+                exports: [RouterModule]
+            })
+            export class AppRoutingModule { }
+          </textarea>
+        </accordion-group>
+
+        <accordion-group heading="Revisando o módulo principal(app.module.ts)">
+          <p>
+            Antes de iniciarmos a nossa aplicação, devemos revisar o módulo principal adicionando 
+            importações de módulos e verifcando importações de componentes que criamos no decorrer do tutorial.
+          </p>
+          <ol>
+            <li>Acesse o arquivo <code>app.module.ts</code> e preencha com as seguintes informações</li>
+          </ol>
+          <textarea  class="p-3 mb-2 bg-dark text-white" cols="120" rows="36">
+            import { NgModule } from '@angular/core';
+            import { BrowserModule } from '@angular/platform-browser';
+            import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+            import { ReactiveFormsModule } from '@angular/forms';
+            import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
+            import { AccordionModule } from 'ngx-bootstrap/accordion';
+            
+            import { AppRoutingModule } from './app-routing.module';
+            import { JwtInterceptorService, ErrorInterceptorService } from './helpers';
+            
+            import { AppComponent } from './app.component';
+            import { AlertComponent } from './components';
+            import { HomeComponent } from './home';
+            
+            @NgModule({
+              declarations: [
+                AppComponent,
+                AlertComponent,
+                HomeComponent
+              ],
+              imports: [
+                BrowserModule,
+                BrowserAnimationsModule,
+                ReactiveFormsModule,
+                HttpClientModule,
+                AccordionModule,
+                AppRoutingModule
+              ],
+              providers: [
+                { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptorService, multi: true },
+                { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptorService, multi: true },
+              ],
+              bootstrap: [AppComponent]
+            })
+            export class AppModule { }            
+          </textarea>
+          <br>
+          <h5>
+            Por fim acesse seu terminal e execute o comando <code>ng serve</code>, crie uma conta e veja a aplicação funcionando.
+          </h5>
+          <p>Obrigado, por ler até aqui. Espero que tenha dado tudo certo. O repositório está aberto para updates :)</p>
         </accordion-group>
 
     </accordion>

@@ -1,4 +1,3 @@
-import { UsersComponent } from './users.component';
 import { LayoutComponent } from './layout/layout.component';
 import { ListComponent } from './list/list.component';
 import { AddEditComponent } from './add-edit/add-edit.component';
@@ -6,6 +5,5 @@ import { AddEditComponent } from './add-edit/add-edit.component';
 export {
     LayoutComponent,
     ListComponent,
-    UsersComponent,
     AddEditComponent
 }
